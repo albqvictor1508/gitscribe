@@ -18,11 +18,13 @@ type Choice struct {
 }
 
 type APIResponse struct {
-	id       string   `json:"id"`
-	chatcmpl string   `json:"chatcmpl"`
-	object   string   `json:"object"`
-	created  string   `json:"created"`
-	choices  []Choice `json:"choices"`
+	/*
+		id       string   `json:"id"`
+		chatcmpl string   `json:"chatcmpl"`
+		object   string   `json:"object"`
+		created  string   `json:"created"`
+	*/
+	choices []Choice `json:"choices"`
 }
 
 func SendPrompt(ctx string) (APIResponse, error) {
@@ -38,11 +40,11 @@ func SendPrompt(ctx string) (APIResponse, error) {
 		log.Fatal("salve")
 	}
 
-	reply, err := http.Post("", "application/json", bytes.NewBuffer(data))
+	reply, err := http.Post("https://ai.hackclub.com/chat/completions", "application/json", bytes.NewBuffer(data))
 
 	body, err := io.ReadAll(reply.Body)
 	if err != nil {
-		panic(err)
+		log.Fatalf("error to read body: %v", body)
 	}
 
 	var apiResponse APIResponse

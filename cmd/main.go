@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/albqvictor1508/gitscribe/cmd/internal"
 )
@@ -16,10 +17,10 @@ func main() {
 			}
 	*/
 
-	context := "baseado nos dados desse git diff, me fala oque foi alterado"
+	context := "who wins the 2002 world cup"
 	reply, err := internal.SendPrompt(context)
 	if err != nil {
-		panic(err)
+		log.Fatalf("error to get reply: %v", err)
 	}
 
 	fmt.Print(reply)
