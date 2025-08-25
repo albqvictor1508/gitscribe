@@ -3,18 +3,19 @@ package internal
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 )
 
-type ResponseMessage struct {
+type ResponseMessages struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
 type Choice struct {
-	Message ResponseMessage `json:"message"`
+	Messages []ResponseMessages `json:"messages"`
 }
 
 type APIResponse struct {
@@ -37,14 +38,24 @@ func SendPrompt(ctx string) (APIResponse, error) {
 		},
 	})
 	if err != nil {
-		log.Fatal("salve")
+		log.Fatal("error to create body")
 	}
 
 	reply, err := http.Post("https://ai.hackclub.com/chat/completions", "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return APIResponse{}, fmt.Errorf("error to request to hackclub: %v", err)
+	}
+	defer reply.Body.Close()
 
 	body, err := io.ReadAll(reply.Body)
 	if err != nil {
-		log.Fatalf("error to read body: %v", body)
+		return APIResponse{}, fmt.Errorf("error to read data: %v", err)
+	}
+
+	if reply.StatusCode != http.StatusOK {
+		log.Printf("API retornou um status de erro: %s", reply.Status)
+		log.Printf("Corpo da resposta de erro: %s", body)
+		return APIResponse{}, fmt.Errorf("a API retornou um status não-OK: %s", reply.Status)
 	}
 
 	var apiResponse APIResponse
