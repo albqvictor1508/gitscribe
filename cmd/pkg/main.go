@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/albqvictor1508/gitscribe/cmd/internal"
 )
@@ -18,6 +17,10 @@ func main() {
 	*/
 
 	context := "baseado nos dados desse git diff, me fala oque foi alterado"
-	var reply io.ReadCloser = internal.SendPrompt(context)
+	reply, err := internal.SendPrompt(context)
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Print(reply)
 }

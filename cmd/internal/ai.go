@@ -8,12 +8,29 @@ import (
 	"net/http"
 )
 
-func SendPrompt(ctx *string) ([]byte, error) {
+type ResponseMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type Choice struct {
+	Message ResponseMessage `json:"message"`
+}
+
+type APIResponse struct {
+	id       string   `json:"id"`
+	chatcmpl string   `json:"chatcmpl"`
+	object   string   `json:"object"`
+	created  string   `json:"created"`
+	choices  []Choice `json:"choices"`
+}
+
+func SendPrompt(ctx string) (APIResponse, error) {
 	data, err := json.Marshal(map[string]any{
-		"message": []map[string]string{
+		"messages": []map[string]string{
 			{
 				"role":    "user",
-				"content": *ctx,
+				"content": ctx,
 			},
 		},
 	})
@@ -28,8 +45,10 @@ func SendPrompt(ctx *string) ([]byte, error) {
 		panic(err)
 	}
 
-	if err := json.Unmarshal(body, ""); err != nil {
+	var apiResponse APIResponse
+
+	if err := json.Unmarshal(body, &apiResponse); err != nil {
 		log.Fatal("error to parse reply body to json")
 	}
-	return body, nil
+	return apiResponse, nil
 }
