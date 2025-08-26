@@ -44,7 +44,7 @@ func main() {
 			}
 
 			for _, file := range files {
-				fmt.Printf("ADDING... %v", file)
+				fmt.Printf("ADDING...\n %v", file)
 				r := exec.Command("git", "add", file)
 				if _, err := r.Output(); err != nil {
 					panic(err)
