@@ -32,7 +32,7 @@ func main() {
 				msg, err := internal.SendPrompt(context) // TODO: to retornando uma struct com []Choices, tem que tratar aqui ou la na func, depois de resolver o bug
 				if err != nil {
 					log.Fatalf("error to get message with ai: %v", err)
-					fmt.Println("salve")
+					fmt.Println("testando commits aqui")
 				}
 				message = msg
 			}
