@@ -46,11 +46,16 @@ func main() {
 			}
 
 			fmt.Println("CHECKING REMOTE...")
-			remote := exec.Command("git", "remote", "-v")
-			res, err := remote.Output()
+			remoteRaw := exec.Command("git", "remote", "-v")
+			res, err := remoteRaw.Output()
 			if err != nil {
 				panic(err)
 			}
+			remote := string(res)
+			if len(remote) == 0 {
+				log.Fatal("Please set a remote branch...")
+			}
+
 			fmt.Printf("remote branch: %v\n", res)
 
 			fmt.Println("PUSHING...")
