@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -14,9 +16,6 @@ import (
 
 func main() {
 	var message, branch string
-
-	spinner := pterm.DefaultSpinner
-	spinner.Sequence = []string{"|", "/", "-", "\\"}
 
 	rootCmd := &cobra.Command{Use: "gitscribe"}
 
@@ -31,8 +30,9 @@ func main() {
  ||    || ||  ||      ||  ||''|'   ||   || ||    ||    ||  ||''|'
  ||    |  ||  '|.     ||  ||   |.  ||   || ||    ||    |   ||
 .||...|' .||.  ''|...|'  .||.  '| .||.  .||.  .||...|' .||.'
-`
+			`
 			pterm.DefaultBasicText.Println(pterm.FgCyan.Sprint(asciiArt))
+			pterm.Info.Println("Your AI-powered commit assistant.")
 			pterm.Println()
 			time.Sleep(time.Second)
 
@@ -40,10 +40,12 @@ func main() {
 			if len(files) == 0 {
 				files = append(files, ".")
 			}
-			addSpinner, _ := spinner.Start("Staging files...")
+			addSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start("Staging files...")
 			for _, file := range files {
-				r := exec.Command("git", "add", file)
-				if _, err := r.Output(); err != nil {
+				addCmd := exec.Command("git", "add", file)
+				addCmd.Stdout = io.Discard
+				addCmd.Stderr = io.Discard
+				if err := addCmd.Run(); err != nil {
 					addSpinner.Fail(fmt.Sprintf("Failed to stage file %s: %v", file, err))
 					os.Exit(1)
 				}
@@ -51,20 +53,23 @@ func main() {
 			addSpinner.Success("Files staged successfully!")
 
 			if len(message) == 0 {
-				aiSpinner, _ := spinner.Start("Analyzing changes and generating message with AI...")
-				diff := exec.Command("git", "diff", "--staged")
-				res, err := diff.CombinedOutput()
-				if err != nil {
-					aiSpinner.Fail(fmt.Sprintf("Failed to get git diff: %s", string(res)))
+				aiSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start("Analyzing changes and generating message with AI...")
+
+				var diffOutput bytes.Buffer
+				diffCmd := exec.Command("git", "diff", "--staged")
+				diffCmd.Stdout = &diffOutput
+				diffCmd.Stderr = &diffOutput
+				if err := diffCmd.Run(); err != nil {
+					aiSpinner.Fail(fmt.Sprintf("Failed to get git diff: %s", diffOutput.String()))
 					os.Exit(1)
 				}
 
-				if len(res) == 0 {
+				if diffOutput.Len() == 0 {
 					aiSpinner.Warning("No changes found in stage. Nothing to commit.")
 					os.Exit(0)
 				}
 
-				context := fmt.Sprintf("Based on the git diff below, create a commit message that follows the 'Conventional Commits' specification. Return only the commit message, with nothing else: %v", string(res))
+				context := fmt.Sprintf("Based on the git diff below, create a commit message that follows the 'Conventional Commits' specification. Return only the commit message, with nothing else: %v", diffOutput.String())
 
 				msg, err := internal.SendPrompt(context)
 				if err != nil {
@@ -80,18 +85,24 @@ func main() {
 				os.Exit(1)
 			}
 
-			commitSpinner, _ := spinner.Start("Committing...")
-			raw := exec.Command("git", "commit", "-m", message)
-			if output, err := raw.CombinedOutput(); err != nil {
-				commitSpinner.Fail(fmt.Sprintf("Error while committing: %s", string(output)))
+			commitSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start("Committing...")
+			var commitOutput bytes.Buffer
+			commitCmd := exec.Command("git", "commit", "-m", message)
+			commitCmd.Stdout = &commitOutput
+			commitCmd.Stderr = &commitOutput
+			if err := commitCmd.Run(); err != nil {
+				commitSpinner.Fail(fmt.Sprintf("Error while committing: %s", commitOutput.String()))
 				os.Exit(1)
 			}
 			commitSpinner.Success("Commit successful!")
 
-			pushSpinner, _ := spinner.Start(fmt.Sprintf("Executing 'git push origin %s'வுகளை...", branch))
+			pushSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start(fmt.Sprintln("Executing 'git push origin'..."))
+			var pushOutput bytes.Buffer
 			pushCmd := exec.Command("git", "push", "origin", branch)
-			if output, err := pushCmd.CombinedOutput(); err != nil {
-				pushSpinner.Fail(fmt.Sprintf("Error while pushing: %s", string(output)))
+			pushCmd.Stdout = &pushOutput
+			pushCmd.Stderr = &pushOutput
+			if err := pushCmd.Run(); err != nil {
+				pushSpinner.Fail(fmt.Sprintf("Error while pushing: %s", pushOutput.String()))
 				os.Exit(1)
 			}
 			pushSpinner.Success("Push successful!")
@@ -108,3 +119,4 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
