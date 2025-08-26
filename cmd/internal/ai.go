@@ -15,7 +15,7 @@ type ResponseMessages struct {
 }
 
 type Choice struct {
-	Messages []ResponseMessages `json:"messages"`
+	Messages ResponseMessages `json:"messages"`
 }
 
 type APIResponse struct {
@@ -25,7 +25,7 @@ type APIResponse struct {
 		object   string   `json:"object"`
 		created  string   `json:"created"`
 	*/
-	choices []Choice `json:"choices"`
+	Choices []Choice `json:"choices"`
 }
 
 func SendPrompt(ctx string) (APIResponse, error) {
