@@ -5,33 +5,34 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/albqvictor1508/gitscribe/internal"
 	"github.com/pterm/pterm"
-	"github.com/pterm/pterm/putils"
 	"github.com/spf13/cobra"
 )
 
-/*
-Copyright © 2025 Victor Albuquerque albq.victor@gmail.com
-*/
-
 func main() {
 	var message, branch string
-	rootCmd := &cobra.Command{Use: "gs"}
+
+	spinner := pterm.DefaultSpinner
+	spinner.Sequence = []string{"|", "/", "-", "\\"}
+
+	rootCmd := &cobra.Command{Use: "gitscribe"}
 
 	cmd := &cobra.Command{
 		Use:   "cmt [files]",
 		Args:  cobra.MinimumNArgs(0),
-		Short: "realiza 'git add [path]', 'git commit -m [message]', 'git push origin [branch]'",
+		Short: "AI-powered git add, commit, and push",
 		Run: func(cmd *cobra.Command, args []string) {
-			pterm.DefaultBigText.WithLetters(
-				putils.LettersFromStringWithStyle("Git", pterm.NewStyle(pterm.FgCyan)),
-				putils.LettersFromStringWithStyle("Scribe", pterm.NewStyle(pterm.FgLightMagenta))).
-				Render()
-			pterm.Info.Println("Seu assistente de commits com IA.")
+			asciiArt := `
+'||''|.  '||    ..|''||'  '||''|.''||''|. '||'  '||''|.  '||''|'
+ ||   ||  ||  .|'    ||   ||   ||  ||   || ||    ||   ||  ||  ||
+ ||    || ||  ||      ||  ||''|'   ||   || ||    ||    ||  ||''|'
+ ||    |  ||  '|.     ||  ||   |.  ||   || ||    ||    |   ||
+.||...|' .||.  ''|...|'  .||.  '| .||.  .||.  .||...|' .||.'
+`
+			pterm.DefaultBasicText.Println(pterm.FgCyan.Sprint(asciiArt))
 			pterm.Println()
 			time.Sleep(time.Second)
 
@@ -39,74 +40,71 @@ func main() {
 			if len(files) == 0 {
 				files = append(files, ".")
 			}
-			addSpinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Adicionando arquivos: %s...", strings.Join(files, " ")))
-
+			addSpinner, _ := spinner.Start("Staging files...")
 			for _, file := range files {
 				r := exec.Command("git", "add", file)
 				if _, err := r.Output(); err != nil {
-					addSpinner.Fail(fmt.Sprintf("Falha ao adicionar o arquivo %s: %v", file, err))
+					addSpinner.Fail(fmt.Sprintf("Failed to stage file %s: %v", file, err))
 					os.Exit(1)
 				}
 			}
-			addSpinner.Success("Arquivos adicionados ao stage!")
+			addSpinner.Success("Files staged successfully!")
 
 			if len(message) == 0 {
-				aiSpinner, _ := pterm.DefaultSpinner.Start("Analisando as mudanças e gerando mensagem com IA...")
-				diff := exec.Command("git", "diff", "--staged") // Use --staged for better accuracy
-				res, err := diff.Output()
+				aiSpinner, _ := spinner.Start("Analyzing changes and generating message with AI...")
+				diff := exec.Command("git", "diff", "--staged")
+				res, err := diff.CombinedOutput()
 				if err != nil {
-					aiSpinner.Fail("Falha ao obter o 'git diff': ", err)
-					panic(err)
+					aiSpinner.Fail(fmt.Sprintf("Failed to get git diff: %s", string(res)))
+					os.Exit(1)
 				}
 
 				if len(res) == 0 {
-					aiSpinner.Warning("Nenhuma mudança encontrada no stage. Nada para commitar.")
+					aiSpinner.Warning("No changes found in stage. Nothing to commit.")
 					os.Exit(0)
 				}
 
-				context := fmt.Sprintf("aqui está a diferença no código do usuário, em cima dessa diferença, quero que crie uma mensagem de commit que siga os padrões estabelecidos pelo 'Conventional Commit', (chore, feat, entre outros) . Além disso quero que me retorne somente a mensagem de commit, nada além disso, quero que retorne somente a mensagem de commit: %v", string(res))
+				context := fmt.Sprintf("Based on the git diff below, create a commit message that follows the 'Conventional Commits' specification. Return only the commit message, with nothing else: %v", string(res))
 
 				msg, err := internal.SendPrompt(context)
 				if err != nil {
-					aiSpinner.Fail(fmt.Sprintf("Erro ao gerar mensagem com IA: %v", err))
+					aiSpinner.Fail(fmt.Sprintf("Error generating message with AI: %v", err))
 					os.Exit(1)
 				}
 				message = msg
-				aiSpinner.Success("Mensagem de commit gerada!")
+				aiSpinner.Success("Commit message generated!")
 			}
 
 			if !internal.ConfirmAction(message) {
-				pterm.Warning.Println("Operação cancelada pelo usuário.")
+				pterm.Warning.Println("Operation cancelled by user.")
 				os.Exit(1)
 			}
 
-			commitSpinner, _ := pterm.DefaultSpinner.Start("Realizando commit...")
+			commitSpinner, _ := spinner.Start("Committing...")
 			raw := exec.Command("git", "commit", "-m", message)
 			if output, err := raw.CombinedOutput(); err != nil {
-				commitSpinner.Fail(fmt.Sprintf("Erro ao commitar: %s", string(output)))
+				commitSpinner.Fail(fmt.Sprintf("Error while committing: %s", string(output)))
 				os.Exit(1)
 			}
-			commitSpinner.Success("Commit realizado com sucesso!")
+			commitSpinner.Success("Commit successful!")
 
-			pushSpinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Executando 'git push origin %s'...", branch))
+			pushSpinner, _ := spinner.Start(fmt.Sprintf("Executing 'git push origin %s'வுகளை...", branch))
 			pushCmd := exec.Command("git", "push", "origin", branch)
-
 			if output, err := pushCmd.CombinedOutput(); err != nil {
-				pushSpinner.Fail(fmt.Sprintf("Erro ao realizar push: %s", string(output)))
+				pushSpinner.Fail(fmt.Sprintf("Error while pushing: %s", string(output)))
 				os.Exit(1)
 			}
-			pushSpinner.Success("Push realizado com sucesso!")
+			pushSpinner.Success("Push successful!")
 			pterm.Println()
-			pterm.Success.Println("Tudo pronto!")
+			pterm.Success.Println("All done!")
 		},
 	}
 
-	cmd.Flags().StringVarP(&message, "message", "m", "", "Messagem do commit")
-	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch para o push")
+	cmd.Flags().StringVarP(&message, "message", "m", "", "The commit message")
+	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "The branch to push to")
 
 	rootCmd.AddCommand(cmd)
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
 }
-
