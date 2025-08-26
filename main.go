@@ -5,6 +5,7 @@ import (
 	"log"
 	"os/exec"
 
+	"github.com/albqvictor1508/gitscribe/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -25,14 +26,16 @@ func main() {
 
 			if len(message) == 0 {
 				diff := exec.Command("git", "diff")
-				res, err := diff.Output() // TODO: jogar esse git diff na IA
+				res, err := diff.Output()
 				if err != nil {
 					panic(err)
 				}
 
-				message = fmt.Sprintf("mensagem e parara, aqui está a diferença no código: %v", string(res))
-			}
+				context := fmt.Sprintf("aqui está a diferença no código do usuário, em cima dessa diferença, quero que crie uma mensagem de commit que siga os padrões estabelecidos pelo 'Conventional Commits'. Além disso quero que me retorne somente a mensagem de commit, nada além disso, quero que retorne somente a mensagem de commit: %v", string(res))
 
+				msg, err := internal.SendPrompt(context) // TODO: to retornando uma struct com []Choices, tem que tratar aqui ou la na func, depois de resolver o bug
+				fmt.Printf("main.go message: %v\n", msg)
+			}
 			fmt.Println("ADDING...")
 			r := exec.Command("git", "add", filepath)
 			if _, err := r.Output(); err != nil {
@@ -42,7 +45,7 @@ func main() {
 			fmt.Println("COMMITING...")
 			raw := exec.Command("git", "commit", "-m", message)
 			if _, err := raw.Output(); err != nil {
-				panic(err)
+				log.Fatalf("error to commit: %v", err.Error())
 			}
 
 			fmt.Println("CHECKING REMOTE...")
@@ -51,6 +54,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
+
 			remote := string(res)
 			if len(remote) == 0 {
 				log.Fatal("Please set a remote branch...")
