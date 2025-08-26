@@ -97,6 +97,7 @@ func main() {
 			commitSpinner.Success("Commit successful!")
 
 			pushSpinner := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\")
+			pushSpinner.InfoPrinter.Printf("pushing files to %s\n", branch)
 			var pushOutput bytes.Buffer
 			pushCmd := exec.Command("git", "push", "origin", branch)
 			pushCmd.Stdout = &pushOutput
