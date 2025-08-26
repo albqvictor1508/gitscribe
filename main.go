@@ -40,19 +40,15 @@ func main() {
 			fmt.Println(string(response))
 
 			raw := exec.Command("git", "commit", "-m", message)
-			t, err := raw.Output()
-			if err != nil {
+			if _, err := raw.Output(); err != nil {
 				panic(err)
 			}
-			fmt.Println(string(t))
 
 			rawData := exec.Command("git", "push", "origin", branch)
-			p, err := rawData.Output()
-			if err != nil {
+			if _, err := rawData.Output(); err != nil {
 				panic(err)
 			}
 
-			fmt.Println(string(p))
 			fmt.Printf("message: %v \n", message)
 			fmt.Printf("branch: %v \n", branch)
 		},
