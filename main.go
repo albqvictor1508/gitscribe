@@ -20,10 +20,6 @@ func main() {
 	cmd := &cobra.Command{
 		Use: "cmt",
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(branch) == 0 {
-				branch = "main"
-			}
-
 			if len(message) == 0 {
 				diff := exec.Command("git", "diff")
 				res, err := diff.Output()
@@ -80,7 +76,7 @@ func main() {
 
 	cmd.Flags().StringVarP(&filepath, "", "", ".", "")
 	cmd.Flags().StringVarP(&message, "message", "m", "", "Messagem do commit")
-	cmd.Flags().StringVarP(&branch, "branch", "b", "", "Branch")
+	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch")
 
 	rootCmd.AddCommand(cmd)
 	rootCmd.Execute()
