@@ -5,8 +5,12 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
+	"time"
 
 	"github.com/albqvictor1508/gitscribe/internal"
+	"github.com/pterm/pterm"
+	"github.com/pterm/pterm/putils"
 	"github.com/spf13/cobra"
 )
 
@@ -23,75 +27,86 @@ func main() {
 		Args:  cobra.MinimumNArgs(0),
 		Short: "realiza 'git add [path]', 'git commit -m [message]', 'git push origin [branch]'",
 		Run: func(cmd *cobra.Command, args []string) {
+			pterm.DefaultBigText.WithLetters(
+				putils.LettersFromStringWithStyle("Git", pterm.NewStyle(pterm.FgCyan)),
+				putils.LettersFromStringWithStyle("Scribe", pterm.NewStyle(pterm.FgLightMagenta))).
+				Render()
+			pterm.Info.Println("Seu assistente de commits com IA.")
+			pterm.Println()
+			time.Sleep(time.Second)
+
 			files := args
 			if len(files) == 0 {
 				files = append(files, ".")
 			}
+			addSpinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Adicionando arquivos: %s...", strings.Join(files, " ")))
+
+			for _, file := range files {
+				r := exec.Command("git", "add", file)
+				if _, err := r.Output(); err != nil {
+					addSpinner.Fail(fmt.Sprintf("Falha ao adicionar o arquivo %s: %v", file, err))
+					os.Exit(1)
+				}
+			}
+			addSpinner.Success("Arquivos adicionados ao stage!")
+
 			if len(message) == 0 {
-				diff := exec.Command("git", "diff")
+				aiSpinner, _ := pterm.DefaultSpinner.Start("Analisando as mudanças e gerando mensagem com IA...")
+				diff := exec.Command("git", "diff", "--staged") // Use --staged for better accuracy
 				res, err := diff.Output()
 				if err != nil {
+					aiSpinner.Fail("Falha ao obter o 'git diff': ", err)
 					panic(err)
+				}
+
+				if len(res) == 0 {
+					aiSpinner.Warning("Nenhuma mudança encontrada no stage. Nada para commitar.")
+					os.Exit(0)
 				}
 
 				context := fmt.Sprintf("aqui está a diferença no código do usuário, em cima dessa diferença, quero que crie uma mensagem de commit que siga os padrões estabelecidos pelo 'Conventional Commits'. Além disso quero que me retorne somente a mensagem de commit, nada além disso, quero que retorne somente a mensagem de commit: %v", string(res))
 
 				msg, err := internal.SendPrompt(context)
 				if err != nil {
-					log.Fatalf("error to get message with ai: %v", err)
+					aiSpinner.Fail(fmt.Sprintf("Erro ao gerar mensagem com IA: %v", err))
+					os.Exit(1)
 				}
 				message = msg
+				aiSpinner.Success("Mensagem de commit gerada!")
 			}
 
-			for _, file := range files {
-				fmt.Printf("ADDING...\n %v", file)
-				r := exec.Command("git", "add", file)
-				if _, err := r.Output(); err != nil {
-					panic(err)
-				}
-			}
-
-			result := internal.ConfirmAction(message)
-			if !result {
-				fmt.Println("deu red")
+			if !internal.ConfirmAction(message) {
+				pterm.Warning.Println("Operação cancelada pelo usuário.")
 				os.Exit(1)
 			}
 
-			fmt.Println("COMMITING...")
+			commitSpinner, _ := pterm.DefaultSpinner.Start("Realizando commit...")
 			raw := exec.Command("git", "commit", "-m", message)
-			if _, err := raw.Output(); err != nil {
-				fmt.Println(err.Error())
-				log.Fatalf("error to commit: %v", err.Error())
+			if output, err := raw.CombinedOutput(); err != nil {
+				commitSpinner.Fail(fmt.Sprintf("Erro ao commitar: %s", string(output)))
+				os.Exit(1)
 			}
+			commitSpinner.Success("Commit realizado com sucesso!")
 
-			fmt.Println("CHECKING REMOTE...")
-			remoteRaw := exec.Command("git", "remote", "-v")
-			res, err := remoteRaw.Output()
-			if err != nil {
-				panic(err)
+			pushSpinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Executando 'git push origin %s'...", branch))
+			pushCmd := exec.Command("git", "push", "origin", branch)
+
+			if output, err := pushCmd.CombinedOutput(); err != nil {
+				pushSpinner.Fail(fmt.Sprintf("Erro ao realizar push: %s", string(output)))
+				os.Exit(1)
 			}
-
-			remote := string(res)
-			if len(remote) == 0 {
-				log.Fatal("Please set a remote branch...")
-			}
-
-			fmt.Printf("remote branch: %v\n", remote)
-
-			fmt.Println("PUSHING...")
-			rawData := exec.Command("git", "push", "origin", branch)
-			if _, err := rawData.Output(); err != nil {
-				log.Fatalf("error to push commit: %v", err)
-			}
-
-			fmt.Printf("message: %v \n", message)
-			fmt.Printf("branch: %v \n", branch)
+			pushSpinner.Success("Push realizado com sucesso!")
+			pterm.Println()
+			pterm.Success.Println("Tudo pronto!")
 		},
 	}
 
 	cmd.Flags().StringVarP(&message, "message", "m", "", "Messagem do commit")
-	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch do commit")
+	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch para o push")
 
 	rootCmd.AddCommand(cmd)
-	rootCmd.Execute()
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }
+

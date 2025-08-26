@@ -1,24 +1,17 @@
 package internal
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"strings"
+	"github.com/pterm/pterm"
 )
 
 func ConfirmAction(msg string) bool {
-	reader := bufio.NewReader(os.Stdin)
+	pterm.DefaultBox.WithTitle("Sugestão de Commit").Println(msg)
+	pterm.Println()
 
-	fmt.Println("------------------ Commit Message ---------------------")
-	fmt.Println(msg)
-	fmt.Println("-------------------------------------------------------")
-	fmt.Print("Deseja continuar? [y/N]: ")
+	confirmed, _ := pterm.DefaultInteractiveConfirm.
+		WithConfirmText("Deseja usar esta mensagem e criar o commit?").
+		Show()
 
-	input, _ := reader.ReadString('\n')
-	input = strings.TrimSpace(strings.ToLower(input))
-
-	fmt.Print(input)
-
-	return input == "y"
+	return confirmed
 }
+

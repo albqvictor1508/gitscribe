@@ -70,6 +70,7 @@ func SendPrompt(ctx string) (string, error) {
 	msg := apiResponse.Choices[0].Message.Content
 	lines := strings.Split(msg, "\n")
 	commit := lines[len(lines)-1]
+	fmt.Println(commit)
 
 	return commit, nil
 }
