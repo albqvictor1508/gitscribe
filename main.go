@@ -32,18 +32,19 @@ func main() {
 				message = fmt.Sprintf("mensagem e parara, aqui está a diferença no código: %v", string(res))
 			}
 
+			fmt.Println("ADDING...")
 			r := exec.Command("git", "add", filepath)
-			response, err := r.Output()
-			if err != nil {
+			if _, err := r.Output(); err != nil {
 				panic(err)
 			}
-			fmt.Println(string(response))
 
+			fmt.Println("COMMITING...")
 			raw := exec.Command("git", "commit", "-m", message)
 			if _, err := raw.Output(); err != nil {
 				panic(err)
 			}
 
+			fmt.Println("PUSHING...")
 			rawData := exec.Command("git", "push", "origin", branch)
 			if _, err := rawData.Output(); err != nil {
 				panic(err)
