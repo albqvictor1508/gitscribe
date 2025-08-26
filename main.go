@@ -46,7 +46,7 @@ func main() {
 			}
 
 			fmt.Println("CHECKING REMOTE...")
-			remote := exec.Command("git", "remote", "-v", branch)
+			remote := exec.Command("git", "remote", "-v")
 			res, err := remote.Output()
 			if err != nil {
 				panic(err)
