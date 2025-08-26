@@ -14,14 +14,18 @@ Copyright © 2025 Victor Albuquerque albq.victor@gmail.com
 */
 
 func main() {
-	var message, branch, filepath string
+	var message, branch string
 	rootCmd := &cobra.Command{Use: "gs"}
 
 	cmd := &cobra.Command{
-		Use:   "cmt",
+		Use:   "cmt [files]",
 		Args:  cobra.MinimumNArgs(0),
-		Short: "realiza: 'git add [path]', 'git commit -m [message]', 'git push origin [branch]'",
+		Short: "realiza 'git add [path]', 'git commit -m [message]', 'git push origin [branch]'",
 		Run: func(cmd *cobra.Command, args []string) {
+			files := args
+			if len(files) == 0 {
+				files = append(files, ".")
+			}
 			if len(message) == 0 {
 				diff := exec.Command("git", "diff")
 				res, err := diff.Output()
@@ -38,10 +42,13 @@ func main() {
 				}
 				message = msg
 			}
-			fmt.Println("ADDING...")
-			r := exec.Command("git", "add", filepath)
-			if _, err := r.Output(); err != nil {
-				panic(err)
+
+			for _, file := range files {
+				fmt.Printf("ADDING... %v", file)
+				r := exec.Command("git", "add", file)
+				if _, err := r.Output(); err != nil {
+					panic(err)
+				}
 			}
 
 			fmt.Println("COMMITING...")
@@ -76,7 +83,6 @@ func main() {
 		},
 	}
 
-	cmd.Flags().StringVarP(&filepath, "", "", ".", "")
 	cmd.Flags().StringVarP(&message, "message", "m", "", "Messagem do commit")
 	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch")
 
