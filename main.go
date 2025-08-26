@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os/exec"
 
 	"github.com/spf13/cobra"
@@ -47,7 +48,7 @@ func main() {
 			fmt.Println("PUSHING...")
 			rawData := exec.Command("git", "push", "origin", branch)
 			if _, err := rawData.Output(); err != nil {
-				panic(err)
+				log.Fatalf("error to push commit: %v", err)
 			}
 
 			fmt.Printf("message: %v \n", message)
