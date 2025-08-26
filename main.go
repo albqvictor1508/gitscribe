@@ -56,7 +56,7 @@ func main() {
 				log.Fatal("Please set a remote branch...")
 			}
 
-			fmt.Printf("remote branch: %v\n", res)
+			fmt.Printf("remote branch: %v\n", remote)
 
 			fmt.Println("PUSHING...")
 			rawData := exec.Command("git", "push", "origin", branch)
