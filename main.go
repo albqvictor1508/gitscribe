@@ -96,7 +96,7 @@ func main() {
 			}
 			commitSpinner.Success("Commit successful!")
 
-			pushSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start(fmt.Sprintln("Executing 'git push origin'..."))
+			pushSpinner := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\")
 			var pushOutput bytes.Buffer
 			pushCmd := exec.Command("git", "push", "origin", branch)
 			pushCmd.Stdout = &pushOutput
@@ -119,4 +119,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
