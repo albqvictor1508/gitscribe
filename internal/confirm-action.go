@@ -9,7 +9,6 @@ func ConfirmAction(msg string) bool {
 	pterm.Println()
 
 	confirmed, _ := pterm.DefaultInteractiveConfirm.
-		WithConfirmText("Deseja usar esta mensagem e criar o commit?").
 		Show()
 
 	return confirmed
