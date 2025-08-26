@@ -46,6 +46,14 @@ func main() {
 			}
 
 			fmt.Println("PUSHING...")
+
+			remote := exec.Command("git", "remote", "-v", branch)
+			res, err := remote.Output()
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(string(res))
+
 			rawData := exec.Command("git", "push", "origin", branch)
 			if _, err := rawData.Output(); err != nil {
 				log.Fatalf("error to push commit: %v", err)
