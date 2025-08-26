@@ -18,7 +18,9 @@ func main() {
 	rootCmd := &cobra.Command{Use: "gs"}
 
 	cmd := &cobra.Command{
-		Use: "cmt",
+		Use:   "cmt",
+		Args:  cobra.MinimumNArgs(0),
+		Short: "realiza: 'git add [path]', 'git commit -m [message]', 'git push origin [branch]'",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(message) == 0 {
 				diff := exec.Command("git", "diff")
