@@ -34,7 +34,10 @@ func main() {
 				context := fmt.Sprintf("aqui está a diferença no código do usuário, em cima dessa diferença, quero que crie uma mensagem de commit que siga os padrões estabelecidos pelo 'Conventional Commits'. Além disso quero que me retorne somente a mensagem de commit, nada além disso, quero que retorne somente a mensagem de commit: %v", string(res))
 
 				msg, err := internal.SendPrompt(context) // TODO: to retornando uma struct com []Choices, tem que tratar aqui ou la na func, depois de resolver o bug
-				fmt.Printf("main.go message: %v\n", msg)
+				if err != nil {
+					log.Fatalf("error to get message with ai: %v", err)
+				}
+				message = msg
 			}
 			fmt.Println("ADDING...")
 			r := exec.Command("git", "add", filepath)
