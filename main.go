@@ -45,6 +45,7 @@ func main() {
 			fmt.Println("COMMITING...")
 			raw := exec.Command("git", "commit", "-m", message)
 			if _, err := raw.Output(); err != nil {
+				fmt.Println(err.Error())
 				log.Fatalf("error to commit: %v", err.Error())
 			}
 
