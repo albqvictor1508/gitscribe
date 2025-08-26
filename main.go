@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 
 	"github.com/albqvictor1508/gitscribe/internal"
@@ -50,6 +51,12 @@ func main() {
 				}
 			}
 
+			result := internal.ConfirmAction(message)
+			if !result {
+				fmt.Println("deu red")
+				os.Exit(1)
+			}
+
 			fmt.Println("COMMITING...")
 			raw := exec.Command("git", "commit", "-m", message)
 			if _, err := raw.Output(); err != nil {
@@ -83,7 +90,7 @@ func main() {
 	}
 
 	cmd.Flags().StringVarP(&message, "message", "m", "", "Messagem do commit")
-	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch")
+	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch do commit")
 
 	rootCmd.AddCommand(cmd)
 	rootCmd.Execute()
