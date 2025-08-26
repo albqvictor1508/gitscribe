@@ -51,7 +51,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			fmt.Printf("remote branch: %v", string(res))
+			fmt.Printf("remote branch: %v\n", string(res))
 
 			fmt.Println("PUSHING...")
 			rawData := exec.Command("git", "push", "origin", branch)
