@@ -1,31 +1,44 @@
 package main
 
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"time"
+
+	"github.com/albqvictor1508/gitscribe/internal"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+)
+
 func main() {
-	updateCmd := UpdateCli(version)
 	version := "0.1.2"
-	
-var rootCmd = &cobra.Command{
-	Use:   "gs",
-	Short: "gitscribe: Your AI-powered git commit assistant",
-	Run: func(cmd *cobra.Command, args []string) {
-		versionFlag, _ := cmd.Flags().GetBool("version")
-		if versionFlag {
-			fmt.Printf("gitscribe %s\n", version)
-			return
-		}
-		cmd.Help()
-	},
-}
+	updateCmd := UpdateCli(version)
 
-var cmtCmd = &cobra.Command{
-	Use:   "cmt [files]",
-	Args:  cobra.MinimumNArgs(0),
-	Short: "AI-powered git add, commit, and push",
-	Run: func(cmd *cobra.Command, args []string) {
-		message, _ := cmd.Flags().GetString("message")
-		branch, _ := cmd.Flags().GetString("branch")
+	rootCmd := &cobra.Command{
+		Use:   "gs",
+		Short: "gitscribe: Your AI-powered git commit assistant",
+		Run: func(cmd *cobra.Command, args []string) {
+			versionFlag, _ := cmd.Flags().GetBool("version")
+			if versionFlag {
+				fmt.Printf("gitscribe %s\n", version)
+				return
+			}
+			cmd.Help()
+		},
+	}
 
-		asciiArt2 := `
+	cmtCmd := &cobra.Command{
+		Use:   "cmt [files]",
+		Args:  cobra.MinimumNArgs(0),
+		Short: "AI-powered git add, commit, and push",
+		Run: func(cmd *cobra.Command, args []string) {
+			message, _ := cmd.Flags().GetString("message")
+			branch, _ := cmd.Flags().GetString("branch")
+
+			asciiArt2 := `
            /$$   /$$                                  /$$ /$$
           |__/  | $$
   /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
@@ -78,9 +91,9 @@ var cmtCmd = &cobra.Command{
 				}
 
 				context := fmt.Sprintf(
-					"Based on the git diff below, create a concise commit message that strictly follows the 'Conventional Commits' specification. " +
-						"Return **only** the commit message, with nothing else. " +
-						"Summarize as much as possible, even for large changes, focusing on the main purpose of the commit. " +
+					"Based on the git diff below, create a concise commit message that strictly follows the 'Conventional Commits' specification. "+
+						"Return **only** the commit message, with nothing else. "+
+						"Summarize as much as possible, even for large changes, focusing on the main purpose of the commit. "+
 						"Do not include file names, added/deleted lines, or extra details: %v",
 					diffOutput.String(),
 				)
@@ -126,13 +139,14 @@ var cmtCmd = &cobra.Command{
 		},
 	}
 
-
 	rootCmd.PersistentFlags().BoolP("version", "v", false, "Print gitscribe version")
 	cmtCmd.Flags().StringP("message", "m", "", "The commit message")
 	cmtCmd.Flags().StringP("branch", "b", "main", "The branch to push to")
 
 	rootCmd.AddCommand(cmtCmd)
 	rootCmd.AddCommand(updateCmd)
-}
-}
 
+	if err := rootCmd.Execute(); err != nil {
+		panic(err)
+	}
+}
