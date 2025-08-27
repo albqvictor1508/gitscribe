@@ -1,7 +1,7 @@
 project_name: gitscribe
 
 builds:
-  - main: .
+  - main: ./cmd/gs
     binary: gs
     goos:
     - linux
@@ -15,7 +15,6 @@ archives:
   - format: tar.gz
     files:
       - LICENSE
-      - README.md
 
 checksum:
   name_template: 'checksums.txt'
