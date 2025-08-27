@@ -14,12 +14,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var GITSCRIBE_VERSION = "v0.1.1"
+var (
+	versionHasCalled  bool
+	GITSCRIBE_VERSION = "v0.1.1"
+)
 
 func main() {
 	var message, branch string
 
-	rootCmd := &cobra.Command{Use: "gitscribe"}
+	rootCmd := &cobra.Command{Use: "gs"}
+	rootCmd.PersistentFlags().BoolVarP(&versionHasCalled, "version", "v", false, "gitscribe version")
+
+	rootCmd.Run = func(cmd *cobra.Command, args []string) {
+		if versionHasCalled {
+			fmt.Println(fmt.Sprintf("gitscribe %v", GITSCRIBE_VERSION))
+			return
+		}
+	}
 
 	cmd := &cobra.Command{
 		Use:   "cmt [files]",
@@ -43,6 +54,10 @@ func main() {
 			pterm.Info.Println("Your AI-powered commit assistant.")
 			time.Sleep(time.Second)
 
+			if versionHasCalled {
+				fmt.Println("gitscribe", GITSCRIBE_VERSION)
+				return
+			}
 			files := args
 			if len(files) == 0 {
 				files = append(files, ".")
@@ -133,7 +148,6 @@ func main() {
 	}
 
 	cmd.Flags().StringVarP(&message, "message", "m", "", "The commit message")
-	cmd.Flags().StringVarP(&GITSCRIBE_VERSION, "version", "v", GITSCRIBE_VERSION, "gitscribe version")
 	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "The branch to push to")
 
 	rootCmd.AddCommand(cmd)
