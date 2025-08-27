@@ -1,83 +1,140 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"os/exec"
+	"time"
 
 	"github.com/albqvictor1508/gitscribe/internal"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
-/*
-Copyright © 2025 Victor Albuquerque albq.victor@gmail.com
-*/
-
 func main() {
-	var message, branch, filepath string
-	rootCmd := &cobra.Command{Use: "gs"}
+	var message, branch string
+
+	rootCmd := &cobra.Command{Use: "gitscribe"}
 
 	cmd := &cobra.Command{
-		Use: "cmt",
+		Use:   "cmt [files]",
+		Args:  cobra.MinimumNArgs(0),
+		Short: "AI-powered git add, commit, and push",
 		Run: func(cmd *cobra.Command, args []string) {
+			asciiArt2 := `
+           /$$   /$$                                  /$$ /$$                
+          |__/  | $$                                 |__/| $$                
+  /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
+ /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$
+| $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$$
+| $$  | $$| $$  | $$ /$$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
+|  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
+ \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/
+ /$$  \ $$                                                                   
+|  $$$$$$/                                                                   
+ \______/                                                                    
+			`
+			pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(asciiArt2))
+			pterm.Info.Println("Your AI-powered commit assistant.")
+			time.Sleep(time.Second)
+
+			files := args
+			if len(files) == 0 {
+				files = append(files, ".")
+			}
+			addSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
+			addSpinner.UpdateText("Staging files...")
+			for _, file := range files {
+				addCmd := exec.Command("git", "add", file)
+				addCmd.Stdout = io.Discard
+				addCmd.Stderr = io.Discard
+				if err := addCmd.Run(); err != nil {
+					addSpinner.Fail(fmt.Sprintf("Failed to stage file %s: %v", file, err))
+					os.Exit(1)
+				}
+			}
+			addSpinner.Success("Files staged successfully!")
+
 			if len(message) == 0 {
-				diff := exec.Command("git", "diff")
-				res, err := diff.Output()
-				if err != nil {
-					panic(err)
+				aiSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
+				aiSpinner.UpdateText("Analyzing changes and generating message with AI...")
+
+				var diffOutput bytes.Buffer
+				diffCmd := exec.Command("git", "diff", "--staged")
+				diffCmd.Stdout = &diffOutput
+				diffCmd.Stderr = &diffOutput
+				if err := diffCmd.Run(); err != nil {
+					aiSpinner.Fail(fmt.Sprintf("Failed to get git diff: %s", diffOutput.String()))
+					os.Exit(1)
 				}
 
-				context := fmt.Sprintf("aqui está a diferença no código do usuário, em cima dessa diferença, quero que crie uma mensagem de commit que siga os padrões estabelecidos pelo 'Conventional Commits'. Além disso quero que me retorne somente a mensagem de commit, nada além disso, quero que retorne somente a mensagem de commit: %v", string(res))
+				if diffOutput.Len() == 0 {
+					aiSpinner.Warning("No changes found in stage. Nothing to commit.")
+					os.Exit(0)
+				}
 
-				msg, err := internal.SendPrompt(context) // TODO: to retornando uma struct com []Choices, tem que tratar aqui ou la na func, depois de resolver o bug
+				context := fmt.Sprintf(
+					"Based on the git diff below, create a concise commit message that strictly follows the 'Conventional Commits' specification. "+
+						"Return **only** the commit message, with nothing else. "+
+						"Summarize as much as possible, even for large changes, focusing on the main purpose of the commit. "+
+						"Do not include file names, added/deleted lines, or extra details: %v",
+					diffOutput.String(),
+				)
+
+				msg, err := internal.SendPrompt(context)
 				if err != nil {
-					log.Fatalf("error to get message with ai: %v", err)
-					fmt.Println("salve")
+					aiSpinner.Fail(fmt.Sprintf("Error generating message with AI: %v", err))
+					os.Exit(1)
 				}
 				message = msg
-			}
-			fmt.Println("ADDING...")
-			r := exec.Command("git", "add", filepath)
-			if _, err := r.Output(); err != nil {
-				panic(err)
+				aiSpinner.Success("Commit message generated!")
 			}
 
-			fmt.Println("COMMITING...")
-			raw := exec.Command("git", "commit", "-m", message)
-			if _, err := raw.Output(); err != nil {
-				fmt.Println(err.Error())
-				log.Fatalf("error to commit: %v", err.Error())
+			if !internal.ConfirmAction(message) {
+				// TODO: talvez colocar dps uma frasezinha
+				os.Exit(1)
 			}
 
-			fmt.Println("CHECKING REMOTE...")
-			remoteRaw := exec.Command("git", "remote", "-v")
-			res, err := remoteRaw.Output()
+			commitSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
+			commitSpinner.UpdateText("Committing...")
+
+			var commitOutput bytes.Buffer
+			commitCmd := exec.Command("git", "commit", "-m", message)
+			commitCmd.Stdout = &commitOutput
+			commitCmd.Stderr = &commitOutput
+			if err := commitCmd.Run(); err != nil {
+				commitSpinner.Fail(fmt.Sprintf("Error while committing: %s", commitOutput.String()))
+				os.Exit(1)
+			}
+			commitSpinner.Success("Commit successful!")
+
+			pushSpinner, err := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\").Start()
+			pushSpinner.UpdateText(fmt.Sprintf("pushing files into %s", branch))
+
 			if err != nil {
-				panic(err)
+				log.Fatalf("error to initialize push spinner: %v", err.Error())
 			}
 
-			remote := string(res)
-			if len(remote) == 0 {
-				log.Fatal("Please set a remote branch...")
+			var pushOutput bytes.Buffer
+			pushCmd := exec.Command("git", "push", "origin", branch)
+			pushCmd.Stdout = &pushOutput
+			pushCmd.Stderr = &pushOutput
+			if err := pushCmd.Run(); err != nil {
+				pushSpinner.Fail(fmt.Sprintf("Error while pushing: %s", pushOutput.String()))
+				os.Exit(1)
 			}
-
-			fmt.Printf("remote branch: %v\n", remote)
-
-			fmt.Println("PUSHING...")
-			rawData := exec.Command("git", "push", "origin", branch)
-			if _, err := rawData.Output(); err != nil {
-				log.Fatalf("error to push commit: %v", err)
-			}
-
-			fmt.Printf("message: %v \n", message)
-			fmt.Printf("branch: %v \n", branch)
+			pterm.Success.Println("All done!")
 		},
 	}
 
-	cmd.Flags().StringVarP(&filepath, "", "", ".", "")
-	cmd.Flags().StringVarP(&message, "message", "m", "", "Messagem do commit")
-	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch")
+	cmd.Flags().StringVarP(&message, "message", "m", "", "The commit message")
+	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "The branch to push to")
 
 	rootCmd.AddCommand(cmd)
-	rootCmd.Execute()
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }
