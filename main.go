@@ -45,7 +45,8 @@ func main() {
 			if len(files) == 0 {
 				files = append(files, ".")
 			}
-			addSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start("Staging files...")
+			addSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
+			addSpinner.UpdateText("Staging files...")
 			for _, file := range files {
 				addCmd := exec.Command("git", "add", file)
 				addCmd.Stdout = io.Discard
@@ -58,7 +59,8 @@ func main() {
 			addSpinner.Success("Files staged successfully!")
 
 			if len(message) == 0 {
-				aiSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start("Analyzing changes and generating message with AI...")
+				aiSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
+				aiSpinner.UpdateText("Analyzing changes and generating message with AI...")
 
 				var diffOutput bytes.Buffer
 				diffCmd := exec.Command("git", "diff", "--staged")
@@ -90,7 +92,9 @@ func main() {
 				os.Exit(1)
 			}
 
-			commitSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start("Committing...")
+			commitSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
+			commitSpinner.UpdateText("Committing...")
+
 			var commitOutput bytes.Buffer
 			commitCmd := exec.Command("git", "commit", "-m", message)
 			commitCmd.Stdout = &commitOutput
@@ -101,7 +105,9 @@ func main() {
 			}
 			commitSpinner.Success("Commit successful!")
 
-			pushSpinner, err := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\").Start(fmt.Sprintf("pushing files into %s", branch))
+			pushSpinner, err := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\").Start()
+			pushSpinner.UpdateText(fmt.Sprintf("pushing files into %s", branch))
+
 			if err != nil {
 				log.Fatalf("error to initialize push spinner: %v", err.Error())
 			}
