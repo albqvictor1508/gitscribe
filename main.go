@@ -24,14 +24,20 @@ func main() {
 		Args:  cobra.MinimumNArgs(0),
 		Short: "AI-powered git add, commit, and push",
 		Run: func(cmd *cobra.Command, args []string) {
-			asciiArt := `
-'||''|.  '||    ..|''||'  '||''|.''||''|. '||'  '||''|.  '||''|'
- ||   ||  ||  .|'    ||   ||   ||  ||   || ||    ||   ||  ||  ||
- ||    || ||  ||      ||  ||''|'   ||   || ||    ||    ||  ||''|'
- ||    |  ||  '|.     ||  ||   |.  ||   || ||    ||    |   ||
-.||...|' .||.  ''|...|'  .||.  '| .||.  .||.  .||...|' .||.'
+			asciiArt2 := `
+           /$$   /$$                                  /$$ /$$                
+          |__/  | $$                                 |__/| $$                
+  /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
+ /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$
+| $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$$
+| $$  | $$| $$  | $$ /$$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
+|  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
+ \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/
+ /$$  \ $$                                                                   
+|  $$$$$$/                                                                   
+ \______/                                                                    
 			`
-			pterm.DefaultBasicText.Println(pterm.FgCyan.Sprint(asciiArt))
+			pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(asciiArt2))
 			pterm.Info.Println("Your AI-powered commit assistant.")
 			pterm.Println()
 			time.Sleep(time.Second)
