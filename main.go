@@ -39,7 +39,6 @@ func main() {
 			`
 			pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(asciiArt2))
 			pterm.Info.Println("Your AI-powered commit assistant.")
-			pterm.Println()
 			time.Sleep(time.Second)
 
 			files := args
@@ -87,7 +86,7 @@ func main() {
 			}
 
 			if !internal.ConfirmAction(message) {
-				pterm.Warning.Println("Operation cancelled by user.")
+				// TODO: talvez colocar dps uma frasezinha
 				os.Exit(1)
 			}
 
