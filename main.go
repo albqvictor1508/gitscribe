@@ -101,7 +101,7 @@ func main() {
 			}
 			commitSpinner.Success("Commit successful!")
 
-			pushSpinner, err := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\").Start(fmt.Sprintf("pushing files into %s\n", branch))
+			pushSpinner, err := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\").Start(fmt.Sprintf("pushing files into %s", branch))
 			if err != nil {
 				log.Fatalf("error to initialize push spinner: %v", err.Error())
 			}
