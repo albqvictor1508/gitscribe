@@ -16,7 +16,7 @@ import (
 
 var (
 	versionHasCalled  bool
-	GITSCRIBE_VERSION = "v0.1.1"
+	GITSCRIBE_VERSION = "v0.1.2"
 )
 
 func main() {
