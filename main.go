@@ -107,7 +107,6 @@ func main() {
 				log.Fatalf("error to initialize push spinner: %v", err.Error())
 			}
 
-			pushSpinner.InfoPrinter.Printf("pushing files to %s\n", branch)
 			var pushOutput bytes.Buffer
 			pushCmd := exec.Command("git", "push", "origin", branch)
 			pushCmd.Stdout = &pushOutput
