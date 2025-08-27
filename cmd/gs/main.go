@@ -14,6 +14,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var GITSCRIBE_VERSION = "v0.1.1"
+
 func main() {
 	var message, branch string
 
@@ -131,6 +133,7 @@ func main() {
 	}
 
 	cmd.Flags().StringVarP(&message, "message", "m", "", "The commit message")
+	cmd.Flags().StringVarP(&GITSCRIBE_VERSION, "version", "v", GITSCRIBE_VERSION, "gitscribe version")
 	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "The branch to push to")
 
 	rootCmd.AddCommand(cmd)
