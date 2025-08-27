@@ -1,20 +1,9 @@
 package main
 
-import (
-	"bytes"
-	"fmt"
-	"io"
-	"log"
-	"os"
-	"os/exec"
-	"time"
-
-	"github.com/albqvictor1508/gitscribe/internal"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-)
-
-var version = "v0.1.2" 
+func main() {
+	updateCmd := UpdateCli(version)
+	version := "0.1.2"
+	
 var rootCmd = &cobra.Command{
 	Use:   "gs",
 	Short: "gitscribe: Your AI-powered git commit assistant",
@@ -137,6 +126,7 @@ var cmtCmd = &cobra.Command{
 		},
 	}
 
+
 	rootCmd.PersistentFlags().BoolP("version", "v", false, "Print gitscribe version")
 	cmtCmd.Flags().StringP("message", "m", "", "The commit message")
 	cmtCmd.Flags().StringP("branch", "b", "main", "The branch to push to")
@@ -144,3 +134,5 @@ var cmtCmd = &cobra.Command{
 	rootCmd.AddCommand(cmtCmd)
 	rootCmd.AddCommand(updateCmd)
 }
+}
+
