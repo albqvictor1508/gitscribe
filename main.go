@@ -112,7 +112,6 @@ func main() {
 				pushSpinner.Fail(fmt.Sprintf("Error while pushing: %s", pushOutput.String()))
 				os.Exit(1)
 			}
-			pushSpinner.Success("Push successful!")
 			pterm.Println()
 			pterm.Success.Println("All done!")
 		},
