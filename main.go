@@ -102,7 +102,11 @@ func main() {
 			}
 			commitSpinner.Success("Commit successful!")
 
-			pushSpinner := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\")
+			pushSpinner, err := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\").Start(fmt.Sprintf("pushing files into %s\n", branch))
+			if err != nil {
+				log.Fatalf("error to initialize push spinner: %v", err.Error())
+			}
+
 			pushSpinner.InfoPrinter.Printf("pushing files to %s\n", branch)
 			var pushOutput bytes.Buffer
 			pushCmd := exec.Command("git", "push", "origin", branch)
