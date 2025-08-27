@@ -14,50 +14,45 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	versionHasCalled  bool
-	GITSCRIBE_VERSION = "v0.1.2"
-)
-
-func main() {
-	var message, branch string
-
-	rootCmd := &cobra.Command{Use: "gs"}
-	rootCmd.PersistentFlags().BoolVarP(&versionHasCalled, "version", "v", false, "gitscribe version")
-
-	rootCmd.Run = func(cmd *cobra.Command, args []string) {
-		if versionHasCalled {
-			fmt.Println(fmt.Sprintf("gitscribe %v", GITSCRIBE_VERSION))
+var version = "v0.1.2" 
+var rootCmd = &cobra.Command{
+	Use:   "gs",
+	Short: "gitscribe: Your AI-powered git commit assistant",
+	Run: func(cmd *cobra.Command, args []string) {
+		versionFlag, _ := cmd.Flags().GetBool("version")
+		if versionFlag {
+			fmt.Printf("gitscribe %s\n", version)
 			return
 		}
-	}
+		cmd.Help()
+	},
+}
 
-	cmd := &cobra.Command{
-		Use:   "cmt [files]",
-		Args:  cobra.MinimumNArgs(0),
-		Short: "AI-powered git add, commit, and push",
-		Run: func(cmd *cobra.Command, args []string) {
-			asciiArt2 := `
-           /$$   /$$                                  /$$ /$$                
-          |__/  | $$                                 |__/| $$                
+var cmtCmd = &cobra.Command{
+	Use:   "cmt [files]",
+	Args:  cobra.MinimumNArgs(0),
+	Short: "AI-powered git add, commit, and push",
+	Run: func(cmd *cobra.Command, args []string) {
+		message, _ := cmd.Flags().GetString("message")
+		branch, _ := cmd.Flags().GetString("branch")
+
+		asciiArt2 := `
+           /$$   /$$                                  /$$ /$$
+          |__/  | $$
   /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
- /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$
+ /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$ 
 | $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$
 | $$  | $$| $$  | $$ /$$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
 |  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
  \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/
- /$$  \ $$                                                                   
-|  $$$$$$/                                                                   
- \______/                                                                    
+ /$$  \ $$
+|  $$$$$$/
+ \______/
 			`
 			pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(asciiArt2))
 			pterm.Info.Println("Your AI-powered commit assistant.")
 			time.Sleep(time.Second)
 
-			if versionHasCalled {
-				fmt.Println("gitscribe", GITSCRIBE_VERSION)
-				return
-			}
 			files := args
 			if len(files) == 0 {
 				files = append(files, ".")
@@ -94,9 +89,9 @@ func main() {
 				}
 
 				context := fmt.Sprintf(
-					"Based on the git diff below, create a concise commit message that strictly follows the 'Conventional Commits' specification. "+
-						"Return **only** the commit message, with nothing else. "+
-						"Summarize as much as possible, even for large changes, focusing on the main purpose of the commit. "+
+					"Based on the git diff below, create a concise commit message that strictly follows the 'Conventional Commits' specification. " +
+						"Return **only** the commit message, with nothing else. " +
+						"Summarize as much as possible, even for large changes, focusing on the main purpose of the commit. " +
 						"Do not include file names, added/deleted lines, or extra details: %v",
 					diffOutput.String(),
 				)
@@ -111,7 +106,6 @@ func main() {
 			}
 
 			if !internal.ConfirmAction(message) {
-				// TODO: talvez colocar dps uma frasezinha
 				os.Exit(1)
 			}
 
@@ -128,12 +122,8 @@ func main() {
 			}
 			commitSpinner.Success("Commit successful!")
 
-			pushSpinner, err := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\").Start()
+			pushSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\").Start()
 			pushSpinner.UpdateText(fmt.Sprintf("pushing files into %s", branch))
-
-			if err != nil {
-				log.Fatalf("error to initialize push spinner: %v", err.Error())
-			}
 
 			var pushOutput bytes.Buffer
 			pushCmd := exec.Command("git", "push", "origin", branch)
@@ -147,15 +137,10 @@ func main() {
 		},
 	}
 
-	cmd.Flags().StringVarP(&message, "message", "m", "", "The commit message")
-	cmd.Flags().StringVarP(&branch, "branch", "b", "main", "The branch to push to")
+	rootCmd.PersistentFlags().BoolP("version", "v", false, "Print gitscribe version")
+	cmtCmd.Flags().StringP("message", "m", "", "The commit message")
+	cmtCmd.Flags().StringP("branch", "b", "main", "The branch to push to")
 
-	rootCmd.AddCommand(cmd)
-	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func init() {
-	// TODO: talvez colocar um init aqui
+	rootCmd.AddCommand(cmtCmd)
+	rootCmd.AddCommand(updateCmd)
 }
