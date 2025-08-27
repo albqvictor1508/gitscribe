@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	fmt.Println("")
 	var message, branch string
 
 	rootCmd := &cobra.Command{Use: "gitscribe"}
@@ -77,7 +78,6 @@ func main() {
 				}
 
 				context := fmt.Sprintf("Based on the git diff below, create a commit message that follows the 'Conventional Commits' specification. Return only the commit message, with nothing else: %v", diffOutput.String())
-				fmt.Print("")
 
 				msg, err := internal.SendPrompt(context)
 				if err != nil {
