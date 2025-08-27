@@ -15,7 +15,6 @@ import (
 )
 
 func main() {
-	fmt.Println("")
 	var message, branch string
 
 	rootCmd := &cobra.Command{Use: "gitscribe"}
