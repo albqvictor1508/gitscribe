@@ -4,7 +4,6 @@ import (
 	"github.com/pterm/pterm"
 )
 
-// ConfirmAction shows the user the generated commit message and asks for confirmation.
 func ConfirmAction(msg string) bool {
 	pterm.DefaultBox.WithTitle("Commit Suggestion").Println(msg)
 	pterm.Println()
@@ -14,4 +13,3 @@ func ConfirmAction(msg string) bool {
 
 	return confirmed
 }
-
