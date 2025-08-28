@@ -53,7 +53,6 @@ func main() {
  \______/
 			`
 			pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(asciiArt2))
-			pterm.Info.Println("Your AI-powered commit assistant.")
 			time.Sleep(time.Second)
 
 			files := args
