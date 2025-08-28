@@ -15,7 +15,7 @@ import (
 
 var (
 	version = "1.0.0"
-	example = "sdfsf"
+	example = "sdfsdfsdfsdf"
 )
 
 func main() {
