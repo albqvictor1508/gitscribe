@@ -54,6 +54,7 @@ func main() {
 			`
 			pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(asciiArt2))
 			time.Sleep(time.Second)
+			ShowUpdate(version)
 
 			files := args
 			if len(files) == 0 {

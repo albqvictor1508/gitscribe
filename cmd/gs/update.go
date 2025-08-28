@@ -11,20 +11,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	latest *selfupdate.Release
-	v      semver.Version
-)
-
 func UpdateCli(version string) *cobra.Command {
 	updateCmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update gitscribe to the latest version",
 		Run: func(cmd *cobra.Command, args []string) {
-			v = semver.MustParse(version)
-			err := CheckForUpdate()
-			if err != nil && latest != nil {
-				log.Fatal(err)
+			currentVersion, err := semver.Parse(version)
+			if err != nil {
+				log.Println("Error parsing current version (this may happen in dev mode):", err)
+				return
+			}
+
+			latest, err := CheckForUpdate(currentVersion)
+			if err != nil {
+				log.Println("Error checking for update:", err)
+				return
 			}
 
 			if latest == nil {
@@ -32,9 +33,11 @@ func UpdateCli(version string) *cobra.Command {
 				return
 			}
 
-			fmt.Println("Do you want to update to ", latest.Version, "?")
+			pterm.DefaultBox.WithTitle("Update Available: v" + latest.Version.String()).Println(latest.ReleaseNotes)
 			pterm.Println()
+
 			confirmed, _ := pterm.DefaultInteractiveConfirm.
+				WithDefaultText("Do you want to update?").
 				Show()
 
 			if !confirmed {
@@ -47,6 +50,8 @@ func UpdateCli(version string) *cobra.Command {
 				log.Println("Could not locate executable path")
 				return
 			}
+
+			pterm.Info.Println("Updating binary...")
 			if err := selfupdate.UpdateTo(latest.AssetURL, exe); err != nil {
 				log.Println("Error occurred while updating binary:", err)
 				return
@@ -57,24 +62,29 @@ func UpdateCli(version string) *cobra.Command {
 	return updateCmd
 }
 
-func CheckForUpdate() (err error) {
-	l, found, err := selfupdate.DetectLatest("albqvictor1508/gitscribe")
+func CheckForUpdate(currentVersion semver.Version) (*selfupdate.Release, error) {
+	latest, found, err := selfupdate.DetectLatest("albqvictor1508/gitscribe")
 	if err != nil {
-		log.Println("Error occurred while detecting version:", err)
-		os.Exit(1)
-		return err
+		return nil, fmt.Errorf("error occurred while detecting version: %w", err)
 	}
 
-	if !found || latest.Version.LTE(v) {
-		pterm.Info.Println("Current version is latest")
-		return nil
+	if !found || latest.Version.LTE(currentVersion) {
+		return nil, nil
 	}
-	latest = l
 
-	return nil
+	return latest, nil
 }
 
-func ShowUpdate(v semver.Version) {
-	pterm.DefaultBox.WithTitle("Update Available").Println(fmt.Sprintf("The version v%s is new e parara", v))
-	pterm.Println()
+func ShowUpdate(version string) {
+	currentVersion, err := semver.Parse(version)
+	if err != nil {
+		return
+	}
+	latest, err := CheckForUpdate(currentVersion)
+
+	if err != nil || latest == nil {
+		return
+	}
+	pterm.DefaultBox.WithTitle("Update Available").Println("A new version of gitscribe (v" + latest.Version.String() + ") is available! Run 'gs update' to get it.")
 }
+
