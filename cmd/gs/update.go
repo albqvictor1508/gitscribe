@@ -53,6 +53,10 @@ func UpdateCli(version string) *cobra.Command {
 
 			pterm.Info.Println("Updating binary...")
 			if err := selfupdate.UpdateTo(latest.AssetURL, exe); err != nil {
+				if os.IsPermission(err) {
+					log.Println("Permission denied. Please run the update command with sudo: sudo gs update")
+					return
+				}
 				log.Println("Error occurred while updating binary:", err)
 				return
 			}
@@ -87,4 +91,3 @@ func ShowUpdate(version string) {
 	}
 	pterm.DefaultBox.WithTitle("Update Available").Println("A new version of gitscribe (v" + latest.Version.String() + ") is available! Run 'gs update' to get it.")
 }
-
