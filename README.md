@@ -1,4 +1,17 @@
-# gitscribe
+```shell
+           /$$   /$$                                  /$$ /$$
+          |__/  | $$
+  /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
+ /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$ 
+| $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$
+| $$  | $$| $$  | $$ /$$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
+|  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
+ \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/
+ /$$  \ $$
+|  $$$$$$/
+ \______/
+
+```
 
 **Your AI-powered git commit assistant.**
 
@@ -17,14 +30,33 @@ You can install gitscribe in two ways:
 
 ### From GitHub Releases (Recommended for most users)
 
+#### Linux
+
 1.  Go to the [latest release page](https://github.com/albqvictor1508/gitscribe/releases/latest).
 2.  Download the binary for your operating system and architecture (e.g., `gs_linux_amd64.tar.gz`).
 3.  Extract the archive. You will find a binary file named `gs`.
+    ```shell
+    tar -xzf gs_linux_amd64.tar.gz
+    ```
 4.  Move the `gs` binary to a directory in your system's `PATH`. For example:
     ```shell
     sudo mv gs /usr/local/bin/
     ```
 5.  Verify the installation by running:
+    ```shell
+    gs --version
+    ```
+
+#### Windows
+
+1.  Go to the [latest release page](https://github.com/albqvictor1508/gitscribe/releases/latest).
+2.  Download the binary for your operating system and architecture (e.g., `gs_windows_amd64.tar.gz`).
+3.  Extract the archive. You will find a binary file named `gs.exe`. You can use a tool like 7-Zip or WinRAR, or the `tar` command in PowerShell or Command Prompt:
+    ```shell
+    tar -xzf gs_windows_amd64.tar.gz
+    ```
+4.  Move the `gs.exe` binary to a directory in your system's `PATH`. For example, you can create a folder `C:\Program Files\gitscribe` and add it to your `PATH`.
+5.  Verify the installation by opening a new terminal and running:
     ```shell
     gs --version
     ```
@@ -38,7 +70,7 @@ go install github.com/albqvictor1508/gitscribe/cmd/gs@latest
 
 ## Usage
 
-GitScribe is easy to use. Here are the available commands:
+gitscribe is easy to use. Here are the available commands:
 
 ### `gs cmt`
 
@@ -51,7 +83,9 @@ gs cmt
 
 **Stage specific files:**
 ```shell
-gs cmt file1.go file2.go
+gs cmt file1.go file2.go 
+  OR
+gs cmt *.go
 ```
 
 **Provide your own commit message (skips AI generation):**
@@ -66,15 +100,15 @@ gs cmt -b my-feature-branch
 
 ### `gs update`
 
-Checks for a new version of GitScribe and prompts you to update if one is available.
+Checks for a new version of gitscribe and prompts you to update if one is available.
 ```shell
 gs update
 ```
-GitScribe also checks for updates in the background and will notify you when a new version is available.
+gitscribe also checks for updates in the background and will notify you when a new version is available.
 
 ### `gs --version`
 
-Prints the current version of GitScribe.
+Prints the current version of gitscribe.
 ```shell
 gs --version
 ```
