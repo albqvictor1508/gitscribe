@@ -3,10 +3,12 @@ project_name: gitscribe
 builds:
   - main: ./cmd/gs
     binary: gs
+    ldflags:
+      - -X main.version={{.Version}}
     goos:
-    - linux
-    - darwin
-    - windows
+      - linux
+      - darwin
+      - windows
     goarch:
       - amd64
       - arm64
