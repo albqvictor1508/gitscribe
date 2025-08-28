@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/blang/semver"
 	"github.com/pterm/pterm"
@@ -13,28 +11,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	latest *selfupdate.Release
+	v      semver.Version
+)
+
 func UpdateCli(version string) *cobra.Command {
 	updateCmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update gitscribe to the latest version",
 		Run: func(cmd *cobra.Command, args []string) {
-			v := semver.MustParse(version)
-			latest := CompareVersion(v)
+			v = semver.MustParse(version)
+			err := CheckForUpdate()
+			if err != nil && latest != nil {
+				log.Fatal(err)
+			}
 
 			if latest == nil {
-				log.Println("No release info found")
+				pterm.Info.Println("Current version is the latest")
 				return
 			}
 
-			fmt.Print("Do you want to update to", latest.Version, "? (y/n): ")
-			input, err := bufio.NewReader(os.Stdin).ReadString('\n')
-			if err != nil {
-				log.Fatal("Error to get input:", err.Error())
-				return
-			}
+			fmt.Println("Do you want to update to ", latest.Version, "?")
+			pterm.Println()
+			confirmed, _ := pterm.DefaultInteractiveConfirm.
+				Show()
 
-			answer := strings.TrimSpace(strings.ToLower(input))
-			if answer != "y" {
+			if !confirmed {
 				log.Println("Update canceled")
 				return
 			}
@@ -54,22 +57,24 @@ func UpdateCli(version string) *cobra.Command {
 	return updateCmd
 }
 
-func CompareVersion(v semver.Version) (latest *selfupdate.Release) {
-	latest, found, err := selfupdate.DetectLatest("albqvictor1508/gitscribe")
+func CheckForUpdate() (err error) {
+	l, found, err := selfupdate.DetectLatest("albqvictor1508/gitscribe")
 	if err != nil {
 		log.Println("Error occurred while detecting version:", err)
 		os.Exit(1)
-		return
+		return err
 	}
 
 	if !found || latest.Version.LTE(v) {
-		fmt.Println(latest)
-		fmt.Println(v)
-		fmt.Println(found)
-		log.Println("Current version is the latest")
-		return
+		pterm.Info.Println("Current version is latest")
+		return nil
 	}
+	latest = l
 
-	pterm.DefaultBox.WithTitle("Update Available").Printf("version v%s is available to download, exec gs update if you want!", v)
-	return latest
+	return nil
+}
+
+func ShowUpdate(v semver.Version) {
+	pterm.DefaultBox.WithTitle("Update Available").Println(fmt.Sprintf("The version v%s is new e parara", v))
+	pterm.Println()
 }
