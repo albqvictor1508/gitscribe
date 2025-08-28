@@ -63,6 +63,9 @@ func CompareVersion(v semver.Version) (latest *selfupdate.Release) {
 	}
 
 	if !found || latest.Version.LTE(v) {
+		fmt.Println(latest)
+		fmt.Println(v)
+		fmt.Println(found)
 		log.Println("Current version is the latest")
 		return
 	}
