@@ -113,6 +113,3 @@ Prints the current version of gitscribe.
 gs --version
 ```
 
-## License
-
-Please add your license information here.
