@@ -74,7 +74,7 @@ func main() {
 			addSpinner.Success("Files staged successfully!")
 
 			if len(message) == 0 {
-				aiSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
+				aiSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\").Start()
 				aiSpinner.UpdateText("Analyzing changes and generating message with AI...")
 
 				var diffOutput bytes.Buffer
