@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "0.0.1"
+var version = "0.0.2"
 
 func main() {
 	updateCmd := UpdateCli(version)
@@ -21,6 +21,7 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:   "gs",
 		Short: "gitscribe: Your AI-powered git commit assistant",
+
 		Run: func(cmd *cobra.Command, args []string) {
 			versionFlag, _ := cmd.Flags().GetBool("version")
 			if versionFlag {
