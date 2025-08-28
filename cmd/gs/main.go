@@ -15,6 +15,10 @@ import (
 
 var version = "1.0.0"
 
+/*
+* Copyright (c) 2025 Victor Albuquerque Arruda. All Rights Reserved.
+* */
+
 func main() {
 	updateCmd := UpdateCli(version)
 

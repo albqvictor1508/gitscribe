@@ -9,6 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/*
+* Copyright (c) 2025 Victor Albuquerque Arruda. All Rights Reserved.
+* */
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "gs",
@@ -33,3 +37,4 @@ func Execute() {
 func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
+

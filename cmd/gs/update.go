@@ -11,6 +11,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/*
+* Copyright (c) 2025 Victor Albuquerque Arruda. All Rights Reserved.
+* */
+
 func UpdateCli(version string) *cobra.Command {
 	updateCmd := &cobra.Command{
 		Use:   "update",
