@@ -93,10 +93,12 @@ func main() {
 				}
 
 				context := fmt.Sprintf(
-					"Based on the git diff below, create a concise commit message that strictly follows the 'Conventional Commits' specification. "+
-						"Return **only** the commit message, with nothing else. "+
-						"Summarize as much as possible, even for large changes, focusing on the main purpose of the commit. "+
-						"Do not include file names, added/deleted lines, or extra details: %v",
+					"Analyze the following git diff and generate a commit message. "+
+						"The message must follow the Conventional Commits standard. "+
+						"Your response should contain *only* the commit message, without any additional text, explanations, or markdown formatting. "+
+						"Focus on the primary purpose of the changes and be concise. "+
+						"Do not include file names, line numbers, or the diff itself in the output. "+
+						"Here is the diff:\n%v",
 					diffOutput.String(),
 				)
 
